@@ -6,17 +6,15 @@ import jakarta.persistence.EntityTransaction;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.example.springbootweb.Exception.EntityNotFoundException;
+import org.example.springbootweb.Exception.DataProcessingException;
 import org.example.springbootweb.model.Book;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
 public class BookRepositoryImpl implements BookRepository {
     private final EntityManagerFactory entityManagerFactory;
 
-    @Transactional
     @Override
     public Book createBook(Book book) {
         EntityTransaction transaction = null;
@@ -30,7 +28,7 @@ public class BookRepositoryImpl implements BookRepository {
             if (transaction != null) {
                 transaction.rollback();
             }
-            throw e;
+            throw new DataProcessingException("Failed to create book object");
         }
     }
 
@@ -40,7 +38,7 @@ public class BookRepositoryImpl implements BookRepository {
             Book book = entityManager.find(Book.class, id);
             return Optional.ofNullable(book);
         } catch (Exception e) {
-            throw new EntityNotFoundException("Failed to get book id " + id );
+            throw new DataProcessingException("Failed to get book id " + id );
         }
     }
 
@@ -49,7 +47,7 @@ public class BookRepositoryImpl implements BookRepository {
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             return entityManager.createQuery("select b from Book b", Book.class).getResultList();
         } catch (Exception e) {
-            throw new EntityNotFoundException("Filed to get all books");
+            throw new DataProcessingException("Filed to get all books");
         }
     }
 }
